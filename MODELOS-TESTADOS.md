@@ -302,6 +302,37 @@ docker compose exec openclaw-gateway node /app/openclaw.mjs pairing approve tele
 
 ---
 
+### 10. Telegram 401 Unauthorized
+
+**Causa:** Token do bot expirado, revogado ou incorreto.
+
+**Sintoma no log:**
+```
+[telegram] setMyCommands failed: Call to 'setMyCommands' failed! (401: Unauthorized)
+[telegram] [default] channel exited: Call to 'getMe' failed! (401: Unauthorized)
+```
+
+**Verificar token:**
+```bash
+curl -s "https://api.telegram.org/bot<SEU_TOKEN>/getMe"
+```
+
+**Solucao:**
+1. Abrir Telegram e falar com @BotFather
+2. Usar `/mybots` → selecionar bot → `API Token`
+3. Revogar token antigo e gerar novo
+4. Atualizar em `openclaw.json`:
+```json
+"channels": {
+  "telegram": {
+    "botToken": "<NOVO_TOKEN>"
+  }
+}
+```
+5. Reiniciar gateway: `docker compose restart openclaw-gateway`
+
+---
+
 ## Modelo Avancado: qwen-agentic (Tool-Tuned)
 
 Baseado no [guia do Thomas Hegghammer](https://gist.github.com/Hegghammer/86d2070c0be8b3c62083d6653ad27c23).
@@ -367,11 +398,22 @@ export OLLAMA_FLASH_ATTENTION=1
 export OLLAMA_CONTEXT_LENGTH=16384
 ```
 
-### Performance esperada
-| Hardware | Tokens/s |
-|----------|----------|
-| 2x RTX 3090 (48GB) | ~16 tok/s |
-| NVIDIA GB10 (119GB unified) | ~25-40 tok/s |
+### Performance medida (qwen-agentic 72B Q3)
+
+| Hardware | Tokens/s | Observacao |
+|----------|----------|------------|
+| 2x RTX 3090 (48GB) | ~16 tok/s | Estimativa do autor |
+| NVIDIA GB10 (119GB unified) | **~5 tok/s** | Testado em 2026-02-02 |
+
+**Nota:** A performance no GB10 ficou abaixo do esperado. Possiveis causas:
+- Memoria unificada vs VRAM dedicada
+- Overhead de quantizacao Q3_K_M
+- Uso de swap (2.7GB durante teste)
+
+**Uso de memoria durante inferencia:**
+- Ollama container: ~15GB
+- Gateway container: ~350MB
+- RAM total usada: ~67GB / 119GB
 
 ---
 
@@ -386,6 +428,7 @@ export OLLAMA_CONTEXT_LENGTH=16384
 | **qwen2.5:32b** | Ollama | 19GB | Funciona | Bom | **Sim (local)** |
 | command-r:35b | Ollama | 18GB | Funciona | Fraco | Nao |
 | llama3.1:70b | Ollama | 42GB | Muito lento | Bom | Nao |
+| **qwen-agentic (72B Q3)** | Ollama | 37GB | Funciona (~5 tok/s) | Excelente | **Sim (tool-tuned)** |
 | Claude Sonnet 4 | OpenRouter | - | Funciona | Excelente | Sim (pago) |
 | Gemini 2.0 Flash | OpenRouter | - | Nao existe | - | Nao |
 | Llama 3.3 70B | OpenRouter | - | Funciona | Bom | Sim (free) |
