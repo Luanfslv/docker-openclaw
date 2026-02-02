@@ -215,7 +215,7 @@ Este setup usa **OpenRouter** como gateway unificado de LLMs. Com uma única API
 | **Claude** | Opus 4.5, Sonnet 4.5, Haiku 3.5, etc. |
 | **GPT** | GPT-4o, GPT-4 Turbo, o1-preview, etc. |
 | **Gemini** | Gemini 2.0 Flash (FREE), Pro, etc. |
-| **Open Source** | Llama 3.3 70B (FREE), DeepSeek R1 (FREE), Qwen, etc. |
+| **Open Source** | Qwen3 Coder 480B (FREE) ⭐, Llama 3.3 70B (FREE), etc. |
 
 **Obtenha sua chave:**
 1. Acesse [openrouter.ai](https://openrouter.ai/)
@@ -240,13 +240,14 @@ DEFAULT_MODEL=openrouter/anthropic/claude-opus-4-5
 # Opção 3: GPT-4o (excelente para código)
 DEFAULT_MODEL=openrouter/openai/gpt-4o
 
-# Opção 4: Gemini 2.0 Flash (GRÁTIS, muito rápido) 🆓
-DEFAULT_MODEL=openrouter/google/gemini-2.0-flash-exp
+# Opção 4: Qwen3 Coder 480B (GRÁTIS, melhor para código) 🆓 ⭐
+DEFAULT_MODEL=openrouter/qwen/qwen3-coder:free
 
 # Opção 5: Llama 3.3 70B (GRÁTIS, open source) 🆓
-DEFAULT_MODEL=openrouter/meta-llama/llama-3.3-70b-instruct
+DEFAULT_MODEL=openrouter/meta-llama/llama-3.3-70b-instruct:free
 
 # Opção 6: DeepSeek R1 (GRÁTIS, raciocínio avançado) 🆓
+# ⚠️ NOTA: DeepSeek R1 usa tags <think> que podem causar problemas
 DEFAULT_MODEL=openrouter/deepseek/deepseek-r1
 ```
 
@@ -257,7 +258,9 @@ DEFAULT_MODEL=openrouter/deepseek/deepseek-r1
 > docker compose down -v && docker compose up -d
 > ```
 
-> 💰 **Modelos Grátis:** Gemini 2.0 Flash, Llama 3.3 70B e DeepSeek R1 são totalmente gratuitos no OpenRouter. Perfeito para testar!
+> 💰 **Modelos Grátis:** Qwen3 Coder 480B, Llama 3.3 70B e DeepSeek R1 são totalmente gratuitos no OpenRouter. Perfeito para testar!
+
+> 📋 **Modelos Testados:** Veja [MODELOS-TESTADOS.md](MODELOS-TESTADOS.md) para documentação completa de modelos testados, problemas encontrados e recomendações.
 
 > 📊 **Preços e limites:** Consulte [openrouter.ai/models](https://openrouter.ai/models) para ver preços, limites de contexto e velocidade de cada modelo.
 
