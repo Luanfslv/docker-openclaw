@@ -78,24 +78,46 @@ if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_APP_TOKEN" ]; then
   "
 fi
 
-# Configure OpenRouter as LLM provider
+# Configure LLM provider (supports both Anthropic direct and OpenRouter keys)
 if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "sk-or-your-key-here" ]; then
-  echo "🧠 OpenRouter configured — multi-model gateway active"
-
-  # Set default model from env var or use Claude Sonnet 4.5
-  DEFAULT_MODEL="${DEFAULT_MODEL:-openrouter/anthropic/claude-sonnet-4.5}"
-
-  # Export for Node.js access
-  export DEFAULT_MODEL
 
   # Create agent directory structure and auth profiles file
   AGENT_DIR="$CONFIG_DIR/agents/main/agent"
   AUTH_PROFILES_FILE="$AGENT_DIR/auth-profiles.json"
   mkdir -p "$AGENT_DIR"
 
-  # Create auth-profiles.json with OpenRouter credentials
-  # Models must use the openrouter/ prefix: "openrouter/anthropic/claude-sonnet-4.5"
-  cat > "$AUTH_PROFILES_FILE" <<EOF
+  # Detect key type: Anthropic direct (sk-ant-) vs OpenRouter (sk-or-)
+  if echo "$OPENROUTER_API_KEY" | grep -q "^sk-ant-"; then
+    # --- Direct Anthropic API key ---
+    echo "🧠 Anthropic API key detected — using direct Anthropic API"
+
+    DEFAULT_MODEL="${DEFAULT_MODEL:-anthropic/claude-sonnet-4-20250514}"
+    export DEFAULT_MODEL
+
+    cat > "$AUTH_PROFILES_FILE" <<EOF
+{
+  "anthropic:default": {
+    "provider": "anthropic",
+    "token": "$OPENROUTER_API_KEY"
+  }
+}
+EOF
+    chmod 600 "$AUTH_PROFILES_FILE"
+
+    export ANTHROPIC_API_KEY="$OPENROUTER_API_KEY"
+    # Do NOT set ANTHROPIC_BASE_URL — use the default Anthropic endpoint
+    unset ANTHROPIC_BASE_URL
+
+    echo "   Model: $DEFAULT_MODEL"
+    echo "   ✓ Auth profile created (Anthropic direct)"
+  else
+    # --- OpenRouter API key ---
+    echo "🧠 OpenRouter configured — multi-model gateway active"
+
+    DEFAULT_MODEL="${DEFAULT_MODEL:-openrouter/anthropic/claude-sonnet-4.5}"
+    export DEFAULT_MODEL
+
+    cat > "$AUTH_PROFILES_FILE" <<EOF
 {
   "openrouter:default": {
     "provider": "openrouter",
@@ -107,23 +129,22 @@ if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "sk-or-your-key-he
   }
 }
 EOF
-  chmod 600 "$AUTH_PROFILES_FILE"
+    chmod 600 "$AUTH_PROFILES_FILE"
+
+    export ANTHROPIC_API_KEY="$OPENROUTER_API_KEY"
+    export ANTHROPIC_BASE_URL="https://openrouter.ai/api/v1"
+
+    echo "   Model: $DEFAULT_MODEL"
+    echo "   ✓ Auth profile created (OpenRouter)"
+    echo "   ✓ OpenRouter base URL configured"
+  fi
 
   # Set default model in config
   inject_json "$CONFIG_FILE" "
     cfg.agents = cfg.agents || {};
     cfg.agents.defaults = cfg.agents.defaults || {};
-    if (!cfg.agents.defaults.model) {
-      cfg.agents.defaults.model = { primary: process.env.DEFAULT_MODEL };
-    }
+    cfg.agents.defaults.model = { primary: process.env.DEFAULT_MODEL };
   "
-  echo "   Model: $DEFAULT_MODEL"
-  echo "   ✓ Auth profile created"
-
-  # Export environment variables for OpenRouter integration
-  export ANTHROPIC_API_KEY="$OPENROUTER_API_KEY"
-  export ANTHROPIC_BASE_URL="https://openrouter.ai/api/v1"
-  echo "   ✓ OpenRouter base URL configured"
 else
   echo "⚠️  OPENROUTER_API_KEY not set! Please configure it in .env"
   echo "   Get your key at: https://openrouter.ai/"

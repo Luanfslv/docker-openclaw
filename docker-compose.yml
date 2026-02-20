@@ -6,7 +6,7 @@ services:
     env_file:
       - .env
     ports:
-      - "127.0.0.1:18789:18789"  # Loopback only — never expose to 0.0.0.0
+      - "127.0.0.1:18789:18789" # Loopback only — never expose to 0.0.0.0
     volumes:
       - openclaw-data:/home/openclaw/.openclaw
       - openclaw-workspace:/home/openclaw/workspace
@@ -22,7 +22,7 @@ services:
 networks:
   openclaw-net:
     driver: bridge
-    internal: false  # Set to true for full network isolation (no internet)
+    internal: false # Set to true for full network isolation (no internet)
 
 volumes:
   openclaw-data:
