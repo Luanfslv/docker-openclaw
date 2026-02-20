@@ -15,7 +15,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
   if [ -f "$TEMPLATE_FILE" ]; then
     cp "$TEMPLATE_FILE" "$CONFIG_FILE"
   else
-    echo '{"gateway":{"port":18789},"channels":{}}' > "$CONFIG_FILE"
+    echo "{\"gateway\":{\"port\":${GATEWAY_PORT:-18790}},\"channels\":{}}" > "$CONFIG_FILE"
   fi
 fi
 
@@ -152,10 +152,13 @@ fi
 
 # Docker requires binding to 0.0.0.0 inside the container for port mapping to work.
 # The docker-compose.yml restricts external access to 127.0.0.1 on the host.
-echo "🌐 Setting gateway bind to lan (required for Docker port mapping)..."
+GATEWAY_PORT="${GATEWAY_PORT:-18790}"
+export GATEWAY_PORT
+echo "🌐 Setting gateway bind to lan and port to $GATEWAY_PORT..."
 inject_json "$CONFIG_FILE" "
   cfg.gateway = cfg.gateway || {};
   cfg.gateway.bind = 'lan';
+  cfg.gateway.port = parseInt(process.env.GATEWAY_PORT || '18790');
 "
 
 # Configure logging
@@ -171,10 +174,10 @@ chmod 600 "$CONFIG_FILE" 2>/dev/null || true
 echo "🦞 Starting OpenClaw..."
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║  🌐 Webchat: http://localhost:18789/chat                ║"
+echo "║  🌐 Webchat: http://localhost:${GATEWAY_PORT}/chat                ║"
 echo "║  🔑 Token: use your GATEWAY_AUTH_TOKEN from .env        ║"
 echo "║  🧠 Model: ${DEFAULT_MODEL:-openrouter/anthropic/claude-sonnet-4.5} ║"
-echo "║  📋 Status: docker exec openclaw openclaw doctor         ║"
+echo "║  📋 Status: docker exec openclaw-acelera openclaw doctor ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo ""
 exec "$@"

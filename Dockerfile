@@ -41,7 +41,7 @@ RUN sed -i 's/\r$//' /home/openclaw/entrypoint.sh \
 USER openclaw
 WORKDIR /home/openclaw/workspace
 
-EXPOSE 18789
+EXPOSE 18790
 
 ENTRYPOINT ["/home/openclaw/entrypoint.sh"]
 CMD ["openclaw", "gateway"]

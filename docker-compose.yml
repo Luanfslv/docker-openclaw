@@ -1,18 +1,18 @@
 services:
   openclaw:
     build: .
-    container_name: openclaw
+    container_name: openclaw-acelera
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - "127.0.0.1:18789:18789" # Loopback only — never expose to 0.0.0.0
+      - "127.0.0.1:18790:18790" # Loopback only — never expose to 0.0.0.0
     volumes:
-      - openclaw-data:/home/openclaw/.openclaw
-      - openclaw-workspace:/home/openclaw/workspace
-      - openclaw-logs:/home/openclaw/logs
+      - openclaw-acelera-data:/home/openclaw/.openclaw
+      - openclaw-acelera-workspace:/home/openclaw/workspace
+      - openclaw-acelera-logs:/home/openclaw/logs
     networks:
-      - openclaw-net
+      - openclaw-acelera-net
     security_opt:
       - no-new-privileges:true
     read_only: false
@@ -20,11 +20,11 @@ services:
       - /tmp:size=512M
 
 networks:
-  openclaw-net:
+  openclaw-acelera-net:
     driver: bridge
     internal: false # Set to true for full network isolation (no internet)
 
 volumes:
-  openclaw-data:
-  openclaw-workspace:
-  openclaw-logs:
+  openclaw-acelera-data:
+  openclaw-acelera-workspace:
+  openclaw-acelera-logs:
